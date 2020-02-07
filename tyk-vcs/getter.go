@@ -27,31 +27,31 @@ type Getter interface {
 
 type BaseGetter struct {
 	Getter
-	fs        billy.Filesystem
+	fs billy.Filesystem
 }
 
 type GitGetter struct {
 	*BaseGetter
 	Getter
-	repo      string
-	branch    string
-	key       []byte
-	fs        billy.Filesystem
-	r         *git.Repository
+	repo   string
+	branch string
+	key    []byte
+	fs     billy.Filesystem
+	r      *git.Repository
 }
 
 type FSGetter struct {
 	*BaseGetter
 	Getter
-	fs        billy.Filesystem
+	fs billy.Filesystem
 }
 
 func NewGGetter(repo, branch string, key []byte) (*GitGetter, error) {
 	gh := &GitGetter{
-		repo:      repo,
-		branch:    branch,
-		key:       key,
-		fs:        memfs.New(),
+		repo:   repo,
+		branch: branch,
+		key:    key,
+		fs:     memfs.New(),
 	}
 
 	return gh, nil
@@ -59,7 +59,7 @@ func NewGGetter(repo, branch string, key []byte) (*GitGetter, error) {
 
 func NewFSGetter(filePath string) (*FSGetter, error) {
 	gh := &FSGetter{
-		fs:        osfs.New(filePath),
+		fs: osfs.New(filePath),
 	}
 
 	return gh, nil
@@ -87,7 +87,8 @@ func (gg *FSGetter) FetchRepo() error {
 }
 
 func fetchSpec(fs billy.Filesystem) (*TykSourceSpec, error) {
-	specFile, err := fs.Open(".tyk.json")
+	path := "./" + os.Getenv("APP_ENVIRONMENT") + "/" + ".tyk.json"
+	specFile, err := fs.Open(path)
 	if err != nil {
 		fmt.Println(".tyk.json")
 		return nil, err
@@ -245,7 +246,7 @@ func (gg *GitGetter) FetchPolicies(spec *TykSourceSpec) ([]objects.Policy, error
 	return fetchPolicies(gg.fs, spec)
 }
 
-func fetchPolicies(fs billy.Filesystem, spec *TykSourceSpec) ([]objects.Policy, error)  {
+func fetchPolicies(fs billy.Filesystem, spec *TykSourceSpec) ([]objects.Policy, error) {
 	defNames := spec.Policies
 	defs := make([]objects.Policy, len(defNames))
 	for i, defInfo := range defNames {
